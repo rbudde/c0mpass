@@ -19,20 +19,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView infoView;
 
     private Sensor rotationSensor;
-    private int rAccuracy = 0;
-    private boolean rAvailable;
     private float degreeStored = 0.0f;
 
-    private final float[] rotationMatrix = new float[16];
-    private final float[] orientation = new float[3];
-
-    public MainActivity() {
-        // initialize as identity
-        rotationMatrix[ 0] = 1;
-        rotationMatrix[ 4] = 1;
-        rotationMatrix[ 8] = 1;
-        rotationMatrix[12] = 1;
-    }
+    private float[] rotationMatrix = new float[16];
+    private float[] orientation = new float[3];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,38 +35,29 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        rAvailable = sensorManager.registerListener( this, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL );
-        if (rAvailable) {
-            sensorManager.unregisterListener(this); // ready to go
-        } else {
-            sensorManager.unregisterListener(this); // app will not work, sensor not available ...
+        if (rotationSensor == null) {
             infoView.setText(getString(R.string.will_not_work));
+        } else {
+            sensorManager.registerListener( this, rotationSensor, 200000 );
         }
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-        if (rAvailable) {
-            sensorManager.registerListener( this, rotationSensor, SensorManager.SENSOR_DELAY_NORMAL );
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onDestroy() {
+        super.onDestroy();
         sensorManager.unregisterListener(this);
     }
 
     public void onSensorChanged(SensorEvent event) {
-        if (!rAvailable || event.sensor.getType() != Sensor.TYPE_ROTATION_VECTOR ) {
+        if (event.sensor.getType() != Sensor.TYPE_ROTATION_VECTOR ) {
             return;
         }
-
         SensorManager.getRotationMatrixFromVector(rotationMatrix , event.values);
-        SensorManager.getOrientation( rotationMatrix, orientation );
-        int degree = (int) ( (Math.toDegrees( orientation[0] ) + 360) % 360);
+        SensorManager.getOrientation(rotationMatrix, orientation);
+        int degree = (int) (( Math.toDegrees(orientation[0]) + 360.0) % 360);
+
         degreeAsTextView.setText(String.format(getString(R.string.degree_format), degree));
+        degree = degree > 180 ? degree-360 : degree;
         RotateAnimation ra = new RotateAnimation(degreeStored,-degree, Animation.RELATIVE_TO_SELF,0.5f, Animation.RELATIVE_TO_SELF,0.5f);
         ra.setFillAfter(true);
         ra.setDuration(200);
