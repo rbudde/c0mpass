@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">c0mpass</string>
+    <string name="degree_format">%5d°</string>
+    <string name="will_not_work">Rotation-Sensor tut\'s nicht!</string>
+    <string name="info">Grad (zwischen 0° und 360°)</string>
+    <string name="init">- noch keine Daten -</string>
+</resources>
