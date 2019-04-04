@@ -28,12 +28,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         setContentView(R.layout.activity_main);
         compassImage = (ImageView) findViewById(R.id.compass_image);
         degreeAsTextView = (TextView) findViewById(R.id.degree_as_text);
         infoView = (TextView) findViewById(R.id.info);
+    }
 
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+    @Override
+    protected void onResume() {
+        super.onResume();
+
         rotationSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
         if (rotationSensor == null) {
             infoView.setText(getString(R.string.will_not_work));
@@ -42,9 +47,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
+
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
+    protected void onPause() {
+        super.onPause();
         sensorManager.unregisterListener(this);
     }
 
