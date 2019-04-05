@@ -24,7 +24,7 @@
         android:id="@+id/info"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
-        android:text="@string/info"
+        android:text="@string/infoInit"
         android:textSize="15sp"
         android:textColor="@color/colorPrimaryDark"
         android:textStyle="normal|bold" />

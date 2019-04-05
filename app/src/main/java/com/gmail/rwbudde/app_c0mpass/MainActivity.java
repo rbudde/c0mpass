@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView infoView;
 
     private Sensor rotationSensor;
-    private float degreeStored = 0.0f;
+    private int fromDegree = 0;
 
     private float[] rotationMatrix = new float[16];
     private float[] orientation = new float[3];
@@ -47,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -60,18 +59,50 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         SensorManager.getRotationMatrixFromVector(rotationMatrix , event.values);
         SensorManager.getOrientation(rotationMatrix, orientation);
-        int degree = (int) (( Math.toDegrees(orientation[0]) + 360.0) % 360);
+        int toDegree = (int) (( Math.toDegrees(orientation[0]) + 360.0) % 360);
+        degreeAsTextView.setText(String.format(getString(R.string.degree_format), toDegree));
 
-        degreeAsTextView.setText(String.format(getString(R.string.degree_format), degree));
-        degree = degree > 180 ? degree-360 : degree;
-        RotateAnimation ra = new RotateAnimation(degreeStored,-degree, Animation.RELATIVE_TO_SELF,0.5f, Animation.RELATIVE_TO_SELF,0.5f);
+        int delta = deltaWithDirection(fromDegree, toDegree);
+        RotateAnimation ra = new RotateAnimation(-fromDegree,-fromDegree - delta, Animation.RELATIVE_TO_SELF,0.5f, Animation.RELATIVE_TO_SELF,0.5f);
         ra.setFillAfter(true);
         ra.setDuration(200);
         compassImage.startAnimation(ra);
-        degreeStored = -degree;
+        fromDegree = toDegree;
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // unused for Sensor.TYPE_ROTATION_VECTOR?
+        if (sensor.getType() != Sensor.TYPE_ROTATION_VECTOR ) {
+            return;
+        }
+        infoView.setText(String.format(getString(R.string.info), accuracy));
+    }
+
+    public static int degree2view(int d) {
+        return d <= 180 ? d : d - 360;
+    }
+
+    public static int view2degree(int d) {
+        return d < 0 ? d + 360 : d;
+    }
+
+    public static int deltaWithDirection(int fromDegree, int toDegree) {
+        int fromDegreeOpposite = degreeOfOpposite(fromDegree);
+        if (fromDegree <= fromDegreeOpposite) {
+            if (fromDegree <= toDegree && toDegree <= fromDegreeOpposite) {
+                return toDegree - fromDegree; // clockwise
+            } else {
+                return -((360 - toDegree + fromDegree) % 360); // anti clockwise
+            }
+        } else {
+            if ( fromDegreeOpposite < toDegree && toDegree <= fromDegree ) {
+                return -(fromDegree - toDegree); // anti clockwise
+            } else {
+                return (360 - fromDegree + toDegree) % 360;
+            }
+        }
+    }
+
+    public static int degreeOfOpposite(int degree) {
+        return (degree + 180) % 360;
     }
 }
